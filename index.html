@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="de" xml:lang="de"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.6.43">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Melatonin und Kortisol</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+width: 0.8em;
+margin: 0 0.8em 0.2em -1em;  vertical-align: middle;
+}
+.display.math{display: block; text-align: center; margin: 0.5rem auto;}
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+<header id="title-block-header">
+<h1 class="title">Melatonin und Kortisol</h1>
+<p class="subtitle">Heinrichs &amp; Spitschan</p>
+
+</header>
+
+
+<style>
+:root { --ink:#073642; --muted:#586e75; --canvas:#fdf6e3; --grid:#eee8d5; }
+html { background:#fff; }
+body { margin:0; color:var(--ink); font:16px/1.4 Arial,Helvetica,sans-serif; }
+#title-block-header,.quarto-title-block { display:none; }
+.hormone-explorer,.hormone-explorer * { box-sizing:border-box; }
+.hormone-explorer { max-width:1020px; margin:0 auto; padding:24px 20px; }
+.hormone-explorer h1 { margin:0 0 16px; font-size:30px; font-weight:600; }
+.toolbar,.joint-controls,.panel-top,.curve-controls { display:flex; align-items:center; gap:10px; }
+.toolbar { justify-content:space-between; flex-wrap:wrap; margin-bottom:16px; }
+.joint-controls { gap:8px; }
+.joint-controls>span:first-child { margin-right:6px; }
+.step { color:var(--muted); font-size:16px; }
+button { min-width:46px; min-height:44px; padding:6px 12px; background:#fff; border:1px solid #b8c2be; border-radius:3px; color:var(--ink); font:inherit; cursor:pointer; }
+button[data-step] { font-size:26px; line-height:1; }
+button:hover:not(:disabled) { background:#eee8d5; }
+button:disabled { opacity:.35; cursor:default; }
+button:focus-visible,svg:focus-visible,a:focus-visible { outline:3px solid #268bd2; outline-offset:3px; }
+#reset-shifts { font-size:16px; }
+.hormone-panel { background:var(--canvas); margin-bottom:12px; }
+.panel-top { justify-content:space-between; padding:12px 16px 0; }
+.panel-title { margin:0; font-size:21px; font-weight:400; }
+.panel-title strong { margin-right:7px; }
+.panel-unit { font-size:16px; color:var(--muted); margin-left:8px; }
+.curve-controls { gap:5px; }
+.curve-shift { min-width:112px; white-space:nowrap; text-align:center; color:var(--muted); font-size:16px; font-variant-numeric:tabular-nums; }
+.hormone-chart { width:100%; height:auto; display:block; touch-action:pan-y; }
+.chart-readout { margin:0; padding:0 16px 8px; min-height:28px; font-size:16px; color:var(--muted); font-variant-numeric:tabular-nums; }
+footer { color:var(--muted); font-size:13px; padding-top:4px; }
+footer a { color:inherit; text-underline-offset:3px; }
+.reference-note { display:none; }
+.has-shift .reference-note { display:inline; }
+.sr-only { position:absolute!important; width:1px!important; height:1px!important; padding:0!important; margin:-1px!important; overflow:hidden!important; clip:rect(0,0,0,0)!important; white-space:nowrap!important; border:0!important; }
+@media(max-width:520px) { .hormone-explorer { padding:18px 10px; } .hormone-explorer h1 { font-size:27px; } .panel-top { padding:10px 10px 0; flex-wrap:wrap; gap:7px; } .panel-title { font-size:19px; } .curve-controls { margin-left:auto; } .curve-shift { min-width:100px; } .panel-unit { margin-left:5px; } .toolbar { gap:8px; } }
+@media print { .toolbar,.curve-controls,.chart-readout { display:none; } .hormone-panel { break-inside:avoid; } }
+</style>
+<section id="hormone-explorer" class="hormone-explorer" aria-label="Melatonin und Kortisol zeitlich verschieben">
+  <div class="toolbar">
+    <div class="joint-controls" role="group" aria-label="Beide Kurven verschieben">
+      <span>Beide</span>
+      <button type="button" data-target="both" data-step="-1" aria-label="Beide Kurven 30 Minuten früher" title="30 Minuten früher">←</button>
+      <span class="step">30 min</span>
+      <button type="button" data-target="both" data-step="1" aria-label="Beide Kurven 30 Minuten später" title="30 Minuten später">→</button>
+    </div>
+    <button type="button" id="reset-shifts">Zurücksetzen</button>
+  </div>
+  <div id="hormone-panels"></div>
+  <p id="shift-announcement" class="sr-only" aria-live="polite" aria-atomic="true"></p>
+  <footer><a href="https://doi.org/10.1167/jov.26.10.14" target="_blank" rel="noopener">Quelle</a><span class="reference-note"> · Gestrichelt: Ausgangskurve</span></footer>
+  <noscript><p>Bitte JavaScript aktivieren, um die Kurven zu verschieben.</p></noscript>
+</section>
+
+<script type="application/json" id="hormone-data">
+{
+  "study": {
+    "citation": "Heinrichs & Spitschan (2026)",
+    "title": "Circadian timing does not modulate human temporal contrast sensitivity",
+    "url": "https://github.com/tscnlab/HeinrichsEtAl_JVis_2026",
+    "paperUrl": "https://doi.org/10.1167/jov.26.10.14",
+    "timeLabel": "Stunden seit dem Aufwachen (07:00 Uhr)",
+    "n": 12,
+    "summary": "Mittelwerte von 12 Personen; n = 11 beim ersten Messzeitpunkt. Zeitbezug: geplante Aufwachzeit, standardisiert auf 07:00 Uhr."
+  },
+  "series": [
+    {
+      "id": "melatonin",
+      "label": "Melatonin",
+      "unit": "pg/mL",
+      "color": "#6c71c4",
+      "points": [
+        {
+          "time": 0,
+          "mean": 7.972,
+          "sem": 1.290229641294,
+          "n": 11
+        },
+        {
+          "time": 0.5833333333333,
+          "mean": 6.444,
+          "sem": 1.510861393879,
+          "n": 12
+        },
+        {
+          "time": 1.25,
+          "mean": 3.95725,
+          "sem": 0.9671339423782,
+          "n": 12
+        },
+        {
+          "time": 2,
+          "mean": 2.57875,
+          "sem": 0.6704906065032,
+          "n": 12
+        },
+        {
+          "time": 2.75,
+          "mean": 1.989916666667,
+          "sem": 0.4874419073131,
+          "n": 12
+        },
+        {
+          "time": 3.5,
+          "mean": 1.26,
+          "sem": 0.3482313320281,
+          "n": 12
+        },
+        {
+          "time": 5,
+          "mean": 1.247833333333,
+          "sem": 0.2464812007501,
+          "n": 12
+        },
+        {
+          "time": 5.75,
+          "mean": 1.179583333333,
+          "sem": 0.306751613523,
+          "n": 12
+        },
+        {
+          "time": 6.5,
+          "mean": 0.9400833333333,
+          "sem": 0.3068916119575,
+          "n": 12
+        },
+        {
+          "time": 7.25,
+          "mean": 0.7073333333333,
+          "sem": 0.2244323254054,
+          "n": 12
+        },
+        {
+          "time": 8.75,
+          "mean": 0.9049166666667,
+          "sem": 0.2614950448089,
+          "n": 12
+        },
+        {
+          "time": 9.5,
+          "mean": 0.91225,
+          "sem": 0.3209547104131,
+          "n": 12
+        },
+        {
+          "time": 10.25,
+          "mean": 0.9465833333333,
+          "sem": 0.3288982862558,
+          "n": 12
+        },
+        {
+          "time": 11,
+          "mean": 0.5354166666667,
+          "sem": 0.2201960716606,
+          "n": 12
+        },
+        {
+          "time": 12.5,
+          "mean": 2.576166666667,
+          "sem": 0.8655964560622,
+          "n": 12
+        },
+        {
+          "time": 13.25,
+          "mean": 7.3795,
+          "sem": 1.924809197549,
+          "n": 12
+        },
+        {
+          "time": 14,
+          "mean": 10.493333333333,
+          "sem": 2.388645858086,
+          "n": 12
+        },
+        {
+          "time": 14.75,
+          "mean": 16.162583333333,
+          "sem": 2.607863012467,
+          "n": 12
+        },
+        {
+          "time": 16.25,
+          "mean": 18.441166666667,
+          "sem": 2.318429392058,
+          "n": 12
+        },
+        {
+          "time": 17,
+          "mean": 22.210583333333,
+          "sem": 3.255623508821,
+          "n": 12
+        },
+        {
+          "time": 17.75,
+          "mean": 21.063,
+          "sem": 3.018477794679,
+          "n": 12
+        },
+        {
+          "time": 18.5,
+          "mean": 18.580083333333,
+          "sem": 2.595134712035,
+          "n": 12
+        },
+        {
+          "time": 20,
+          "mean": 17.666833333333,
+          "sem": 2.349075236592,
+          "n": 12
+        },
+        {
+          "time": 20.75,
+          "mean": 18.387916666667,
+          "sem": 2.129954119787,
+          "n": 12
+        },
+        {
+          "time": 21.5,
+          "mean": 16.693833333333,
+          "sem": 1.778449945766,
+          "n": 12
+        },
+        {
+          "time": 22.25,
+          "mean": 17.157666666667,
+          "sem": 3.137765882331,
+          "n": 12
+        },
+        {
+          "time": 23.75,
+          "mean": 7.567583333333,
+          "sem": 1.042843922329,
+          "n": 12
+        },
+        {
+          "time": 24.5,
+          "mean": 6.201333333333,
+          "sem": 1.430936170216,
+          "n": 12
+        },
+        {
+          "time": 25.25,
+          "mean": 3.854166666667,
+          "sem": 0.9953603872493,
+          "n": 12
+        },
+        {
+          "time": 26,
+          "mean": 2.265333333333,
+          "sem": 0.7968363899341,
+          "n": 12
+        },
+        {
+          "time": 27.5,
+          "mean": 1.527833333333,
+          "sem": 0.3254492194559,
+          "n": 12
+        },
+        {
+          "time": 28.25,
+          "mean": 1.222,
+          "sem": 0.3251968634535,
+          "n": 12
+        },
+        {
+          "time": 29,
+          "mean": 0.943,
+          "sem": 0.255349285442,
+          "n": 12
+        },
+        {
+          "time": 29.75,
+          "mean": 0.8486666666667,
+          "sem": 0.1853413040579,
+          "n": 12
+        },
+        {
+          "time": 31.25,
+          "mean": 1.058,
+          "sem": 0.2253968217893,
+          "n": 12
+        },
+        {
+          "time": 32,
+          "mean": 0.9144166666667,
+          "sem": 0.2837081689452,
+          "n": 12
+        },
+        {
+          "time": 32.75,
+          "mean": 0.8024166666667,
+          "sem": 0.3096918668596,
+          "n": 12
+        },
+        {
+          "time": 33.5,
+          "mean": 0.5274166666667,
+          "sem": 0.2210980331839,
+          "n": 12
+        },
+        {
+          "time": 35,
+          "mean": 1.225833333333,
+          "sem": 0.6643398846398,
+          "n": 12
+        },
+        {
+          "time": 35.75,
+          "mean": 1.905416666667,
+          "sem": 1.150619579199,
+          "n": 12
+        },
+        {
+          "time": 36.5,
+          "mean": 3.57775,
+          "sem": 2.280745167055,
+          "n": 12
+        },
+        {
+          "time": 37.25,
+          "mean": 6.60075,
+          "sem": 2.655987122108,
+          "n": 12
+        },
+        {
+          "time": 38.75,
+          "mean": 10.647083333333,
+          "sem": 1.994906090515,
+          "n": 12
+        },
+        {
+          "time": 39.5,
+          "mean": 17.161583333333,
+          "sem": 2.210593991402,
+          "n": 12
+        },
+        {
+          "time": 40.25,
+          "mean": 17.925083333333,
+          "sem": 2.622566388386,
+          "n": 12
+        },
+        {
+          "time": 41,
+          "mean": 19.693333333333,
+          "sem": 2.771210957635,
+          "n": 12
+        }
+      ]
+    },
+    {
+      "id": "cortisol",
+      "label": "Kortisol",
+      "unit": "ng/mL",
+      "color": "#cb4b16",
+      "points": [
+        {
+          "time": 0,
+          "mean": 5.727272727273,
+          "sem": 0.9122490598008,
+          "n": 11
+        },
+        {
+          "time": 0.5833333333333,
+          "mean": 12.158333333333,
+          "sem": 1.257309436933,
+          "n": 12
+        },
+        {
+          "time": 1.25,
+          "mean": 9.433333333333,
+          "sem": 0.6893489828831,
+          "n": 12
+        },
+        {
+          "time": 2,
+          "mean": 6.316666666667,
+          "sem": 0.3332196775933,
+          "n": 12
+        },
+        {
+          "time": 2.75,
+          "mean": 5.575,
+          "sem": 0.5234102915814,
+          "n": 12
+        },
+        {
+          "time": 3.5,
+          "mean": 4.075,
+          "sem": 0.2708362470706,
+          "n": 12
+        },
+        {
+          "time": 5,
+          "mean": 4.425,
+          "sem": 0.3752019658151,
+          "n": 12
+        },
+        {
+          "time": 5.75,
+          "mean": 4.891666666667,
+          "sem": 0.6088312615582,
+          "n": 12
+        },
+        {
+          "time": 6.5,
+          "mean": 3.891666666667,
+          "sem": 0.4038560974837,
+          "n": 12
+        },
+        {
+          "time": 7.25,
+          "mean": 3.066666666667,
+          "sem": 0.3438492740029,
+          "n": 12
+        },
+        {
+          "time": 8.75,
+          "mean": 3.183333333333,
+          "sem": 0.4054240827438,
+          "n": 12
+        },
+        {
+          "time": 9.5,
+          "mean": 2.925,
+          "sem": 0.3939168117071,
+          "n": 12
+        },
+        {
+          "time": 10.25,
+          "mean": 3.083333333333,
+          "sem": 0.4665854907753,
+          "n": 12
+        },
+        {
+          "time": 11,
+          "mean": 2.458333333333,
+          "sem": 0.4081477624092,
+          "n": 12
+        },
+        {
+          "time": 12.5,
+          "mean": 2.458333333333,
+          "sem": 0.3158582184168,
+          "n": 12
+        },
+        {
+          "time": 13.25,
+          "mean": 2.191666666667,
+          "sem": 0.2307623509723,
+          "n": 12
+        },
+        {
+          "time": 14,
+          "mean": 1.641666666667,
+          "sem": 0.2985973099935,
+          "n": 12
+        },
+        {
+          "time": 14.75,
+          "mean": 1.958333333333,
+          "sem": 0.2600869124354,
+          "n": 12
+        },
+        {
+          "time": 16.25,
+          "mean": 2.008333333333,
+          "sem": 0.321798528476,
+          "n": 12
+        },
+        {
+          "time": 17,
+          "mean": 2.258333333333,
+          "sem": 0.3957077153147,
+          "n": 12
+        },
+        {
+          "time": 17.75,
+          "mean": 2.825,
+          "sem": 0.3200674644793,
+          "n": 12
+        },
+        {
+          "time": 18.5,
+          "mean": 2.341666666667,
+          "sem": 0.3170551843118,
+          "n": 12
+        },
+        {
+          "time": 20,
+          "mean": 2.9,
+          "sem": 0.4477215043468,
+          "n": 12
+        },
+        {
+          "time": 20.75,
+          "mean": 3.266666666667,
+          "sem": 0.4057042760385,
+          "n": 12
+        },
+        {
+          "time": 21.5,
+          "mean": 3.733333333333,
+          "sem": 0.4848200749252,
+          "n": 12
+        },
+        {
+          "time": 22.25,
+          "mean": 4.675,
+          "sem": 0.7281280481793,
+          "n": 12
+        },
+        {
+          "time": 23.75,
+          "mean": 4.225,
+          "sem": 0.5125877604091,
+          "n": 12
+        },
+        {
+          "time": 24.5,
+          "mean": 6.741666666667,
+          "sem": 0.6670216857741,
+          "n": 12
+        },
+        {
+          "time": 25.25,
+          "mean": 5.675,
+          "sem": 0.5963430220938,
+          "n": 12
+        },
+        {
+          "time": 26,
+          "mean": 4.216666666667,
+          "sem": 0.5002777006601,
+          "n": 12
+        },
+        {
+          "time": 27.5,
+          "mean": 3.733333333333,
+          "sem": 0.4314059701848,
+          "n": 12
+        },
+        {
+          "time": 28.25,
+          "mean": 4.141666666667,
+          "sem": 0.7713092306546,
+          "n": 12
+        },
+        {
+          "time": 29,
+          "mean": 3.3,
+          "sem": 0.6229207839126,
+          "n": 12
+        },
+        {
+          "time": 29.75,
+          "mean": 3.175,
+          "sem": 0.2280101672374,
+          "n": 12
+        },
+        {
+          "time": 31.25,
+          "mean": 3.516666666667,
+          "sem": 0.5418589402336,
+          "n": 12
+        },
+        {
+          "time": 32,
+          "mean": 3.266666666667,
+          "sem": 0.5633145056922,
+          "n": 12
+        },
+        {
+          "time": 32.75,
+          "mean": 2.925,
+          "sem": 0.4287269739377,
+          "n": 12
+        },
+        {
+          "time": 33.5,
+          "mean": 2.541666666667,
+          "sem": 0.396663801874,
+          "n": 12
+        },
+        {
+          "time": 35,
+          "mean": 2.458333333333,
+          "sem": 0.5406867593322,
+          "n": 12
+        },
+        {
+          "time": 35.75,
+          "mean": 2.616666666667,
+          "sem": 0.5552549691881,
+          "n": 12
+        },
+        {
+          "time": 36.5,
+          "mean": 1.691666666667,
+          "sem": 0.4180507315403,
+          "n": 12
+        },
+        {
+          "time": 37.25,
+          "mean": 1.433333333333,
+          "sem": 0.3916424879706,
+          "n": 12
+        },
+        {
+          "time": 38.75,
+          "mean": 1.941666666667,
+          "sem": 0.3403336894902,
+          "n": 12
+        },
+        {
+          "time": 39.5,
+          "mean": 2.391666666667,
+          "sem": 0.4275473274057,
+          "n": 12
+        },
+        {
+          "time": 40.25,
+          "mean": 2.616666666667,
+          "sem": 0.4031755263536,
+          "n": 12
+        },
+        {
+          "time": 41,
+          "mean": 2.341666666667,
+          "sem": 0.381476067269,
+          "n": 12
+        }
+      ]
+    }
+  ]
+}
+
+</script>
+<script>
+(function (root) {
+  'use strict';
+  const LIMIT = 24; // Number of half-hour steps in either direction.
+  const X_DOMAIN = Object.freeze([0, 36]);
+  const clampSteps = value => Math.max(-LIMIT, Math.min(LIMIT, Math.round(value)));
+  const shiftedTime = (time, steps) => time + steps / 2;
+  const displacement = steps => {
+    const minutes = Math.abs(steps) * 30;
+    return steps === 0 ? '0 min' : `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')} h ${steps < 0 ? 'früher' : 'später'}`;
+  };
+  const timeText = value => {
+    const minutes = Math.round(Math.abs(value) * 60);
+    return `${value < 0 ? '−' : ''}${Math.floor(minutes / 60)}:${String(minutes % 60).padStart(2, '0')}`;
+  };
+  function domain() {
+    return [...X_DOMAIN];
+  }
+  function csvText(data, shifts) {
+    const quote = s => '"' + String(s).replace(/"/g, '""') + '"';
+    const rows = [['hormone','unit','original_time_h','shift_minutes','shifted_time_h','mean','sem','n'].join(',')];
+    data.series.forEach(s => s.points.forEach(p => rows.push([quote(s.label),quote(s.unit),p.time,(shifts[s.id] || 0)*30,shiftedTime(p.time,shifts[s.id] || 0),p.mean,p.sem ?? '',p.n ?? ''].join(','))));
+    return rows.join('\r\n') + '\r\n';
+  }
+  const api = { clampSteps, shiftedTime, displacement, timeText, domain, csvText, limitSteps:LIMIT };
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+  if (root) root.HormoneExplorer = api;
+  if (typeof document === 'undefined') return;
+  function start() {
+    const container = document.getElementById('hormone-explorer');
+    const dataElement = document.getElementById('hormone-data');
+    if (!container || !dataElement) return;
+    const data = JSON.parse(dataElement.textContent);
+    const shifts = Object.fromEntries(data.series.map(s => [s.id,0]));
+    const panels = new Map();
+    const ns = 'http://www.w3.org/2000/svg';
+    const escape = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]));
+    const nfmt = x => Number(x).toLocaleString('de-DE',{maximumFractionDigits:2});
+    const el = (tag,attrs,text) => {
+      const node = document.createElementNS(ns,tag);
+      for (const [key,value] of Object.entries(attrs || {})) node.setAttribute(key,value);
+      if (text !== undefined) node.textContent = text;
+      return node;
+    };
+    data.series.forEach((s,i) => {
+      const panel = document.createElement('section');
+      panel.className = 'hormone-panel';
+      panel.style.setProperty('--curve-color',s.color);
+      panel.setAttribute('aria-label',s.label + ': mittlere Konzentration');
+      panel.innerHTML = `<div class="panel-top"><h2 class="panel-title"><strong>${String.fromCharCode(65+i)}</strong>${escape(s.label)}<span class="panel-unit">${escape(s.unit)}</span></h2><div class="curve-controls" role="group" aria-label="${escape(s.label)} verschieben"><button type="button" data-target="${escape(s.id)}" data-step="-1" aria-label="${escape(s.label)} 30 Minuten früher" title="30 Minuten früher">←</button><output class="curve-shift" id="shift-${escape(s.id)}">0 min</output><button type="button" data-target="${escape(s.id)}" data-step="1" aria-label="${escape(s.label)} 30 Minuten später" title="30 Minuten später">→</button></div></div><div class="chart-holder"></div><p class="chart-readout"></p>`;
+      const svg = el('svg',{class:'hormone-chart',role:'img',tabindex:'0','aria-label':`${s.label}: mittlere Konzentration im Zeitverlauf. Mit den Pfeiltasten einzelne Messpunkte auswählen.`});
+      panel.querySelector('.chart-holder').appendChild(svg);
+      container.querySelector('#hormone-panels').appendChild(panel);
+      panels.set(s.id,{panel,svg,series:s,index:i,selected:null});
+    });
+    function niceMaximum(value) {
+      if (!(value > 0)) return 1;
+      const scale = Math.pow(10,Math.floor(Math.log10(value)));
+      return Math.ceil(value / scale * 2) / 2 * scale;
+    }
+    function draw(entry, width, height=272) {
+      const s=entry.series, step=shifts[s.id], svg=entry.svg;
+      svg.replaceChildren();
+      svg.setAttribute('viewBox',`0 0 ${width} ${height}`);
+      const axisLabel=entry.index===data.series.length-1 ? data.study.timeLabel : '';
+      const maxCharacters=Math.max(24,Math.floor((width-28)/8.6));
+      const axisLines=[];
+      axisLabel.split(' ').filter(Boolean).forEach(word=>{
+        if(!axisLines.length || axisLines[axisLines.length-1].length+word.length+1>maxCharacters)axisLines.push(word);
+        else axisLines[axisLines.length-1]+=' '+word;
+      });
+      const axisGap=12;
+      const margin={left:64+axisGap,right:22,top:20,bottom:(axisLines.length ? 55+21*(axisLines.length-1) : 40)+axisGap};
+      const left=margin.left,right=width-margin.right,top=margin.top,bottom=height-margin.bottom;
+      const axisX=left-axisGap, axisY=bottom+axisGap;
+      const [lo,hi]=domain(data.series,shifts);
+      const ymax=niceMaximum(Math.max(...s.points.map(p=>p.mean))*1.06);
+      const x=t=>left+(t-lo)/(hi-lo)*(right-left), y=v=>bottom-v/ymax*(bottom-top);
+      svg.appendChild(el('rect',{width,height,fill:'#fdf6e3'}));
+      const clipId=`plot-window-${s.id}`;
+      const defs=el('defs');
+      const clip=el('clipPath',{id:clipId});
+      clip.appendChild(el('rect',{x:left,y:top,width:right-left,height:bottom-top}));
+      defs.appendChild(clip);svg.appendChild(defs);
+      const group=el('g',{'font-family':'Arial, Helvetica, sans-serif',fill:'#073642','font-size':17}); svg.appendChild(group);
+      const grid=el('g',{class:'chart-grid','aria-hidden':'true'});group.appendChild(grid);
+      const axes=el('g',{class:'chart-axes','aria-hidden':'true'});group.appendChild(axes);
+      axes.appendChild(el('line',{class:'y-axis',x1:axisX,x2:axisX,y1:top,y2:bottom,stroke:'#657b83','stroke-width':1.5}));
+      axes.appendChild(el('line',{class:'x-axis',x1:left,x2:right,y1:axisY,y2:axisY,stroke:'#657b83','stroke-width':1.5}));
+      for (let i=0;i<=4;i++) {
+        const value=ymax*i/4;
+        grid.appendChild(el('line',{x1:left,x2:right,y1:y(value),y2:y(value),stroke:'#ded9c9','stroke-width':1}));
+        axes.appendChild(el('line',{x1:axisX-4,x2:axisX,y1:y(value),y2:y(value),stroke:'#657b83','stroke-width':1.5}));
+        axes.appendChild(el('text',{class:'y-tick',x:axisX-10,y:y(value)+5,'text-anchor':'end',fill:'#586e75'},nfmt(value)));
+      }
+      const candidates=[.5,1,2,3,4,6,8,12,24,48];
+      const tickStep=candidates.find(v=>(hi-lo)/v<=Math.max(3,Math.floor((right-left)/88))) || 48;
+      for(let t=Math.ceil(lo/tickStep)*tickStep;t<=hi+1e-8;t+=tickStep){
+        grid.appendChild(el('line',{x1:x(t),x2:x(t),y1:top,y2:bottom,stroke:'#eee8d5','stroke-width':1}));
+        axes.appendChild(el('line',{x1:x(t),x2:x(t),y1:axisY,y2:axisY+4,stroke:'#657b83','stroke-width':1.5}));
+        axes.appendChild(el('text',{class:'x-tick',x:x(t),y:axisY+25,'text-anchor':'middle',fill:'#586e75'},nfmt(t)));
+      }
+      axisLines.forEach((line,i)=>axes.appendChild(el('text',{class:'x-axis-label',x:width/2,y:height-9-21*(axisLines.length-1-i),'text-anchor':'middle',fill:'#586e75','font-size':17},line)));
+      const curves=el('g',{'clip-path':`url(#${clipId})`});group.appendChild(curves);
+      const path=(points,shift=0)=>points.map((p,i)=>`${i?'L':'M'}${x(p.time+shift).toFixed(2)},${y(p.mean).toFixed(2)}`).join(' ');
+      if(step!==0) curves.appendChild(el('path',{d:path(s.points),fill:'none',stroke:'#839496','stroke-width':2.5,'stroke-dasharray':'6 5','stroke-linejoin':'round'}));
+      curves.appendChild(el('path',{d:path(s.points,step/2),fill:'none',stroke:s.color,'stroke-width':4.5,'stroke-linejoin':'round','stroke-linecap':'round'}));
+      s.points.forEach(p=>curves.appendChild(el('circle',{cx:x(shiftedTime(p.time,step)),cy:y(p.mean),r:3.1,fill:s.color})));
+      {
+        const visibleIndices=s.points.map((p,i)=>({time:shiftedTime(p.time,step),index:i}))
+          .filter(p=>p.time>=lo && p.time<=hi).map(p=>p.index);
+        const cursor=el('g',{visibility:'hidden','aria-hidden':'true'});
+        const vline=el('line',{y1:top,y2:bottom,stroke:'#657b83','stroke-width':1,'stroke-dasharray':'3 3'});
+        const dot=el('circle',{r:5,fill:s.color,stroke:'#fff','stroke-width':2});cursor.append(vline,dot);curves.appendChild(cursor);
+        entry.showIndex=index=>{
+          entry.selected=Math.max(visibleIndices[0],Math.min(visibleIndices[visibleIndices.length-1],index));
+          const p=s.points[entry.selected],tx=shiftedTime(p.time,step);
+          cursor.setAttribute('visibility','visible'); vline.setAttribute('x1',x(tx)); vline.setAttribute('x2',x(tx));dot.setAttribute('cx',x(tx));dot.setAttribute('cy',y(p.mean));
+          entry.panel.querySelector('.chart-readout').textContent=`${nfmt(tx)} h · ${nfmt(p.mean)} ${s.unit} · n = ${p.n}`;
+        };
+        svg.onpointermove=event=>{
+          const box=svg.getBoundingClientRect(), px=(event.clientX-box.left)/box.width*width;
+          let nearest=0,distance=Infinity;
+          visibleIndices.forEach(i=>{const d=Math.abs(x(shiftedTime(s.points[i].time,step))-px);if(d<distance){nearest=i;distance=d;}});entry.showIndex(nearest);
+        };
+        svg.onkeydown=event=>{
+          if(event.key==='ArrowLeft'||event.key==='ArrowRight'){event.preventDefault();entry.showIndex((entry.selected ?? -1)+(event.key==='ArrowRight'?1:-1));}
+          if(event.key==='Home'){event.preventDefault();entry.showIndex(0);}
+          if(event.key==='End'){event.preventDefault();entry.showIndex(s.points.length-1);}
+        };
+        svg.onfocus=()=>entry.showIndex(entry.selected ?? 0);
+        if(entry.selected!==null)entry.showIndex(entry.selected);
+      }
+      return svg;
+    }
+    function render(announce=false){
+      panels.forEach(entry=>draw(entry,Math.max(280,entry.panel.clientWidth)));
+      data.series.forEach(s=>document.getElementById(`shift-${s.id}`).textContent=displacement(shifts[s.id]));
+      container.querySelectorAll('button[data-step]').forEach(button=>{
+        const ids=button.dataset.target==='both'?data.series.map(s=>s.id):[button.dataset.target];
+        const delta=Number(button.dataset.step);
+        button.disabled=ids.some(id=>shifts[id]+delta>LIMIT || shifts[id]+delta<-LIMIT);
+      });
+      container.querySelector('#reset-shifts').disabled=Object.values(shifts).every(s=>s===0);
+      container.classList.toggle('has-shift',Object.values(shifts).some(s=>s!==0));
+      if(announce)container.querySelector('#shift-announcement').textContent=data.series.map(s=>`${s.label}: ${displacement(shifts[s.id])}`).join('. ');
+    }
+    container.querySelectorAll('button[data-step]').forEach(button=>button.addEventListener('click',()=>{
+      const ids=button.dataset.target==='both'?data.series.map(s=>s.id):[button.dataset.target];
+      ids.forEach(id=>shifts[id]=clampSteps(shifts[id]+Number(button.dataset.step)));render(true);
+    }));
+    container.querySelector('#reset-shifts').addEventListener('click',()=>{data.series.forEach(s=>shifts[s.id]=0);render(true);});
+    api.getState=()=>({shifts:{...shifts},domain:domain(data.series,shifts)});
+    api.data=data;
+    render();
+    let lastWidth=container.clientWidth;
+    const observer=new ResizeObserver(()=>{if(container.clientWidth!==lastWidth){lastWidth=container.clientWidth;render();}});observer.observe(container);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
+})(typeof window!=='undefined'?window:globalThis);
+
+</script>
+
+
+
+
+
+</body></html>
